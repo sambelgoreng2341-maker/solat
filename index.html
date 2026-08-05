@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Absensi & Perilaku Shalat Santri</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js untuk Dashboard Visual -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-700">
+
+  <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30 no-print">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-emerald-800 p-2.5 rounded-2xl shadow-inner">
+          <i class="fa-solid fa-mosque text-2xl sm:text-3xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">Sistem Shalat & Adab Santri</h1>
+          <p class="text-xs text-emerald-100">Pondok Pesantren • Dashboard Kedisiplinan & Kehadiran</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div id="current-date-info" class="bg-emerald-900/50 border border-emerald-700/60 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl">
+          <i class="fa-regular fa-calendar-days mr-1.5"></i> Memuat Tanggal...
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    
+    <nav class="flex flex-wrap bg-white p-1.5 rounded-2xl border border-gray-200 gap-1 shadow-sm no-print">
+      <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="flex-1 min-w-[120px] py-3 text-xs sm:text-sm font-bold rounded-xl transition duration-150 text-center bg-emerald-600 text-white shadow-sm flex items-center justify-center gap-2">
+        <i class="fa-solid fa-chart-line"></i> Dashboard & Stat
+      </button>
+      <button onclick="switchTab('input')" id="btn-tab-input" class="flex-1 min-w-[120px] py-3 text-xs sm:text-sm font-bold rounded-xl transition duration-150 text-center text-gray-500 hover:bg-slate-50 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-check-double"></i> Centang Absen Massal
+      </button>
+      <button onclick="switchTab('laporan')" id="btn-tab-laporan" class="flex-1 min-w-[120px] py-3 text-xs sm:text-sm font-bold rounded-xl transition duration-150 text-center text-gray-500 hover:bg-slate-50 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-file-invoice"></i> Laporan & Riwayat
+      </button>
+    </nav>
+
+    <!-- Dashboard Tab -->
+    <section id="tab-dashboard" class="space-y-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-users text-xl sm:text-2xl"></i></div>
+          <div>
+            <p class="text-xs text-gray-400 font-bold uppercase">Total Santri</p>
+            <h3 id="stat-total-santri" class="text-lg sm:text-2xl font-black text-gray-800">0</h3>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fa-solid fa-clipboard-user text-xl sm:text-2xl"></i></div>
+          <div>
+            <p class="text-xs text-gray-400 font-bold uppercase">Kehadiran (Hari Ini)</p>
+            <h3 id="stat-kehadiran-hari-ini" class="text-lg sm:text-2xl font-black text-gray-800">0%</h3>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i class="fa-solid fa-user-clock text-xl sm:text-2xl"></i></div>
+          <div>
+            <p class="text-xs text-gray-400 font-bold uppercase">Santri Alpa (Hari Ini)</p>
+            <h3 id="stat-alpa-hari-ini" class="text-lg sm:text-2xl font-black text-gray-800">0</h3>
+          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-clock-rotate-left text-xl sm:text-2xl"></i></div>
+          <div>
+            <p class="text-xs text-gray-400 font-bold uppercase">Sakit & Izin (Hari Ini)</p>
+            <h3 id="stat-sakit-izin-hari-ini" class="text-lg sm:text-2xl font-black text-gray-800">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafik Visual -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between">
+          <h3 class="font-bold text-gray-800 text-sm sm:text-base border-b border-gray-100 pb-3"><i class="fa-solid fa-chart-pie text-emerald-600 mr-1.5"></i> Status Kehadiran Terkini</h3>
+          <div class="py-4 flex justify-center items-center h-64">
+            <canvas id="chartKehadiran"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between lg:col-span-2">
+          <h3 class="font-bold text-gray-800 text-sm sm:text-base border-b border-gray-100 pb-3"><i class="fa-solid fa-chart-simple text-emerald-600 mr-1.5"></i> Kedisiplinan & Perilaku Masjid</h3>
+          <div class="py-4 flex justify-center items-center h-64 w-full">
+            <canvas id="chartPerilaku" class="w-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Input Massal Tab -->
+    <section id="tab-input" class="space-y-6 hidden">
+      <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+        <div class="border-b border-gray-100 pb-3 flex justify-between items-center">
+          <h3 class="font-bold text-gray-800 text-base flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-emerald-600"></i> Setelan & Filter Absensi
+          </h3>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">Metode Centang Cepat</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Filter Kelas -->
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Kelas</label>
+            <select id="input-filter-kelas" onchange="filterSantriGrid()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+              <option value="">Semua Kelas</option>
+            </select>
+          </div>
+          <!-- Filter Kamar -->
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pilih Kamar / Asrama</label>
+            <select id="input-filter-kamar" onchange="filterSantriGrid()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+              <option value="">Semua Kamar</option>
+            </select>
+          </div>
+          <!-- Tanggal Absen -->
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal</label>
+            <input type="date" id="input-tanggal" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+          </div>
+          <!-- Waktu Shalat -->
+          <div>
+            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Waktu Shalat</label>
+            <select id="input-waktu-shalat" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+              <option value="Subuh">Subuh</option>
+              <option value="Dzuhur">Dzuhur</option>
+              <option value="Ashar">Ashar</option>
+              <option value="Maghrib">Maghrib</option>
+              <option value="Isya">Isya</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-xl border border-gray-200 mt-2">
+          <div class="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
+            <i class="fa-solid fa-circle-info text-emerald-600"></i>
+            <span>Tips: Gunakan tombol pintasan untuk mengubah status seluruh santri di layar.</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button type="button" onclick="toggleAllAttendance('Hadir')" class="flex-1 sm:flex-none bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs px-4 py-2.5 rounded-lg border border-emerald-200 transition duration-150">
+              <i class="fa-solid fa-check-double mr-1"></i> Hadirkan Semua
+            </button>
+            <button type="button" id="btn-all-terlambat" data-active="false" onclick="toggleAllTerlambat()" class="flex-1 sm:flex-none bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs px-4 py-2.5 rounded-lg border border-amber-200 transition duration-150">
+              <i class="fa-solid fa-clock mr-1"></i> Terlambat Semua
+            </button>
+            <button type="button" onclick="toggleAllAttendance('Alpa')" class="flex-1 sm:flex-none bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs px-4 py-2.5 rounded-lg border border-rose-200 transition duration-150">
+              <i class="fa-solid fa-circle-xmark mr-1"></i> Alpa Semua
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="flex justify-between items-center px-1">
+          <div>
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <i class="fa-solid fa-users text-emerald-600"></i> Daftar Presensi Santri
+            </h3>
+            <p class="text-xs text-slate-500">Pilih status kehadiran santri pada bilah tombol status.</p>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-lg">
+            Ditemukan: <span id="santri-filtered-count" class="font-bold">0</span> Santri
+          </div>
+        </div>
+
+        <div id="santri-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- Kartu-kartu santri akan dirender menggunakan JavaScript -->
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 pb-2">
+          <p class="text-xs text-gray-500 italic text-center sm:text-left">
+            Pastikan data kehadiran dan perilaku santri telah diisi dengan benar sebelum menekan tombol simpan.
+          </p>
+          <button type="button" onclick="submitAttendanceData()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-10 py-3.5 rounded-xl shadow-lg hover:shadow-emerald-200 transition duration-150 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Absensi Massal
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Riwayat & Laporan Tab -->
+    <section id="tab-laporan" class="space-y-6 hidden">
+      <div id="report-sub-navigation" class="flex border-b border-gray-200 no-print">
+        <button onclick="switchReportSubTab('log')" id="subbtn-log" class="px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-emerald-600 text-emerald-600 flex items-center gap-2">
+          <i class="fa-solid fa-list-ul"></i> Riwayat Transaksi
+        </button>
+        <button onclick="switchReportSubTab('individu')" id="subbtn-individu" class="px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-emerald-600 flex items-center gap-2">
+          <i class="fa-solid fa-user-graduate"></i> Laporan Per Nama
+        </button>
+        <button onclick="switchReportSubTab('rekap')" id="subbtn-rekap" class="px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-emerald-600 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-days"></i> Rekap Berkala (Hari/Minggu/Bulan)
+        </button>
+      </div>
+
+      <!-- SUB-TAB 1: RIWAYAT TRANSAKSI -->
+      <div id="subtab-content-log" class="space-y-6">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 no-print">
+          <h3 class="font-bold text-gray-800 text-base flex items-center gap-2">
+            <i class="fa-solid fa-filter text-emerald-600"></i> Penyaringan Laporan
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Cari Santri</label>
+              <input type="text" id="report-search" oninput="filterReportTable()" placeholder="Ketik Nama..." class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Kelas</label>
+              <select id="report-filter-kelas" onchange="filterReportTable()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">Semua Kelas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Waktu Shalat</label>
+              <select id="report-filter-shalat" onchange="filterReportTable()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">Semua Waktu</option>
+                <option value="Subuh">Subuh</option>
+                <option value="Dzuhur">Dzuhur</option>
+                <option value="Ashar">Ashar</option>
+                <option value="Maghrib">Maghrib</option>
+                <option value="Isya">Isya</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Status Kehadiran</label>
+              <select id="report-filter-status" onchange="filterReportTable()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">Semua Status</option>
+                <option value="Hadir">Hadir</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alpa">Alpa</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Dari Tanggal</label>
+              <input type="date" id="report-filter-start-date" onchange="filterReportTable()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Sampai Tanggal</label>
+              <input type="date" id="report-filter-end-date" onchange="filterReportTable()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                <i class="fa-solid fa-list-ul text-emerald-600"></i> Riwayat Absensi & Kedisiplinan
+              </h3>
+              <p class="text-xs text-slate-400">Menampilkan rekaman riwayat absensi real-time dari Google Sheets.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 no-print">
+              <button onclick="fetchInitialData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-lg border border-slate-300 transition duration-150 flex items-center gap-1.5">
+                <i id="btn-icon-refresh" class="fa-solid fa-arrows-rotate"></i> Refresh Data
+              </button>
+              <button onclick="printReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg shadow transition duration-150 flex items-center gap-1.5">
+                <i class="fa-solid fa-print"></i> Cetak Laporan
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto w-full border border-gray-100 rounded-lg">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-gray-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">
+                  <th class="px-4 py-3 text-left">Waktu Log</th>
+                  <th class="px-4 py-3 text-left">NISN</th>
+                  <th class="px-4 py-3 text-left">Nama Santri</th>
+                  <th class="px-4 py-3 text-left">Kelas/Kamar</th>
+                  <th class="px-4 py-3">Shalat</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3">Disiplin</th>
+                  <th class="px-4 py-3">Pakaian</th>
+                  <th class="px-4 py-3">Adab</th>
+                  <th class="px-4 py-3 text-left">Catatan Khusus</th>
+                </tr>
+              </thead>
+              <tbody id="report-table-body" class="divide-y divide-gray-100 text-xs">
+                <!-- Data diisi JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 2: LAPORAN PER NAMA -->
+      <div id="subtab-content-individu" class="space-y-6 hidden">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 no-print">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <h4 class="font-bold text-gray-800">Pilih Nama Santri</h4>
+              <p class="text-xs text-gray-400">Analisis rekam jejak kedisiplinan per individu santri.</p>
+            </div>
+            <div class="w-full sm:w-72 flex gap-2">
+              <select id="select-report-santri" onchange="renderIndividualReport()" class="w-full bg-slate-50 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold text-emerald-800 focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">-- Pilih Santri --</option>
+              </select>
+              <select id="select-individual-mode" onchange="renderIndividualReport()" class="bg-slate-50 border border-gray-300 rounded-lg px-2 py-2 text-xs font-semibold focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="detail">Semua Detail</option>
+                <option value="hari">Rekap Harian</option>
+                <option value="minggu">Rekap Mingguan</option>
+                <option value="bulan">Rekap Bulanan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="individual-report-result" class="hidden space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm text-center space-y-2">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Persentase Kehadiran</p>
+              <div id="ind-score-hadir" class="text-3xl font-black text-emerald-600">0%</div>
+              <p class="text-[10px] text-gray-400">Rasio Shalat Berjamaah</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm text-center space-y-2">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ketepatan Waktu</p>
+              <div id="ind-score-disiplin" class="text-3xl font-black text-indigo-600">0%</div>
+              <p class="text-[10px] text-gray-400">Tepat Waktu s.d Iqomah</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm text-center space-y-2">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rapi & Seragam</p>
+              <div id="ind-score-seragam" class="text-3xl font-black text-amber-600">0%</div>
+              <p class="text-[10px] text-gray-400">Pakaian sesuai aturan</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm text-center space-y-2">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sopan & Tenang</p>
+              <div id="ind-score-adab" class="text-3xl font-black text-teal-600">0%</div>
+              <p class="text-[10px] text-gray-400">Tidak bising di Masjid</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
+            <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-list-check text-emerald-600 mr-1"></i> Rincian Data Kedisiplinan</h4>
+            <div class="overflow-x-auto border border-gray-100 rounded-lg">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-gray-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center" id="ind-table-header">
+                  </tr>
+                </thead>
+                <tbody id="individual-table-body" class="divide-y divide-gray-100">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="individual-report-empty" class="bg-white p-12 text-center border border-dashed border-gray-300 rounded-xl text-gray-400">
+          <i class="fa-solid fa-user-gear text-4xl mb-3 text-slate-300"></i>
+          <p class="italic">Pilih nama santri di atas untuk memuat laporan perilaku.</p>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 3: REKAP BERKALA -->
+      <div id="subtab-content-rekap" class="space-y-6 hidden">
+        <div id="rekap-period-container" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 no-print">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-3">
+            <div class="space-y-1">
+              <h4 class="font-bold text-gray-800">Rentang Rekapitulasi Data</h4>
+              <p class="text-xs text-gray-400">Pilih mode pengelompokan laporan kehadiran secara terintegrasi.</p>
+            </div>
+            <div>
+              <select id="rekap-period-select" onchange="renderPeriodicSummary()" class="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-sm font-semibold text-emerald-800 focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="hari">Rekapitulasi Harian</option>
+                <option value="minggu">Rekapitulasi Mingguan</option>
+                <option value="bulan">Rekapitulasi Bulanan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Filter Kelas (Rekap)</label>
+              <select id="rekap-filter-kelas" onchange="renderPeriodicSummary()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">Semua Kelas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Filter Kamar / Lantai (Rekap)</label>
+              <select id="rekap-filter-kamar" onchange="renderPeriodicSummary()" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="">Semua Kamar / Lantai</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+          <h3 id="rekap-table-title" class="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
+            <i class="fa-solid fa-chart-line text-emerald-600"></i> Rekapitulasi Berkala
+          </h3>
+          <div class="overflow-x-auto border border-gray-100 rounded-lg">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-gray-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">
+                  <th class="px-4 py-3 text-left">Rentang Waktu</th>
+                  <th class="px-4 py-3">Total Input</th>
+                  <th class="px-4 py-3 text-emerald-600">Hadir</th>
+                  <th class="px-4 py-3 text-blue-600">Sakit</th>
+                  <th class="px-4 py-3 text-amber-600">Izin</th>
+                  <th class="px-4 py-3 text-rose-600">Alpa</th>
+                  <th class="px-4 py-3 text-orange-600">Terlambat</th>
+                  <th class="px-4 py-3">Rasio Hadir (%)</th>
+                </tr>
+              </thead>
+              <tbody id="rekap-table-body" class="divide-y divide-gray-100 text-center">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- DIALOG NOTIFIKASI TOAST -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl max-w-sm border border-slate-700">
+    <div id="toast-icon" class="text-emerald-400 text-lg"><i class="fa-solid fa-circle-check"></i></div>
+    <div>
+      <h5 id="toast-title" class="text-xs font-bold leading-tight"></h5>
+      <p id="toast-desc" class="text-[10px] text-gray-400 mt-0.5 leading-snug"></p>
+    </div>
+  </div>
+
+  <!-- TIRAI LOADING -->
+  <div id="global-loading-screen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white gap-4">
+    <div class="relative w-16 h-16">
+      <div class="absolute inset-0 rounded-full border-4 border-emerald-500/30"></div>
+      <div class="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
+    </div>
+    <div class="text-center space-y-1">
+      <h4 class="font-extrabold tracking-wide text-base">Memuat Sistem...</h4>
+      <p id="loading-subtitle" class="text-xs text-gray-400">Sedang menyinkronkan data dengan Google Sheets.</p>
+    </div>
+  </div>
+
+  <footer class="bg-slate-950 text-slate-500 text-center py-6 mt-12 text-xs border-t border-slate-900 space-y-1 no-print">
+    <p class="font-semibold text-emerald-500">Sistem Informasi Monitoring Santri (SIMS) - Shalat & Adab</p>
+    <p>&copy; 2026 Pondok Pesantren Terintegrasi. Semua Hak Cipta Dilindungi.</p>
+  </footer>
+
+  <!-- External JavaScript -->
+  <script src="./app.js"></script>
+</body>
+</html>
