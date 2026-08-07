@@ -188,6 +188,8 @@ function populateFilterDropdowns() {
   fillDropdown('report-filter-kelas', state.kelasOptions);
   fillDropdown('rekap-filter-kelas', state.kelasOptions);
   fillDropdown('rekap-filter-kamar', state.kamarOptions);
+  fillDropdown('dash-filter-kelas', state.kelasOptions);
+  fillDropdown('dash-filter-kamar', state.kamarOptions);
 }
 
 /**
@@ -234,11 +236,30 @@ function switchReportSubTab(subTabName) {
 
 // ================= STREAMING_CHUNK: Mengolah dashboard dan statistik =================
 function renderDashboard() {
-  const totalSantri = state.students.length;
-  document.getElementById('stat-total-santri').textContent = totalSantri;
+  const dateFilterEl = document.getElementById('dash-filter-tanggal');
+  const classFilterEl = document.getElementById('dash-filter-kelas');
+  const roomFilterEl = document.getElementById('dash-filter-kamar');
+  
+  if (!dateFilterEl.value) {
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+    dateFilterEl.value = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+  }
+  
+  const dateFilter = dateFilterEl.value;
+  const classFilter = classFilterEl ? classFilterEl.value : '';
+  const roomFilter = roomFilterEl ? roomFilterEl.value : '';
 
-  const todayString = new Date().toISOString().substring(0, 10);
-  const todayLogs = state.history.filter(log => log.timestamp && log.timestamp.startsWith(todayString));
+  const filteredStudents = state.students.filter(s => {
+    return (!classFilter || s.kelas === classFilter) && (!roomFilter || s.kamar === roomFilter);
+  });
+  
+  document.getElementById('stat-total-santri').textContent = filteredStudents.length;
+
+  const todayLogs = state.history.filter(log => {
+    return (!dateFilter || (log.timestamp && log.timestamp.startsWith(dateFilter))) &&
+           (!classFilter || log.kelas === classFilter) &&
+           (!roomFilter || log.kamar === roomFilter);
+  });
   
   const totalAbsenToday = todayLogs.length;
 
@@ -345,6 +366,14 @@ function renderDashboard() {
   });
 }
 
+function resetDashFilters() {
+  const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+  document.getElementById('dash-filter-tanggal').value = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+  document.getElementById('dash-filter-kelas').value = '';
+  document.getElementById('dash-filter-kamar').value = '';
+  renderDashboard();
+}
+
 // ================= STREAMING_CHUNK: Membangun Grid Kartu Input Massal =================
 function renderBulkInputGrid() {
   const container = document.getElementById('santri-grid-container');
@@ -425,18 +454,30 @@ function renderBulkInputGrid() {
 }
 
 // ================= STREAMING_CHUNK: Logika Status Kehadiran (Hidup/Matikan Toggle) =================
+let currentStatusFilter = '';
+
+function filterByStatus(status, e) {
+  currentStatusFilter = status;
+  
+  // Update button active state
+  const buttons = document.querySelectorAll('.status-filter-btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('active', 'ring-2', 'ring-offset-2', 'ring-emerald-500');
+  });
+  
+  if (e && e.currentTarget) {
+    e.currentTarget.classList.add('active', 'ring-2', 'ring-offset-2', 'ring-emerald-500');
+  }
+  
+  filterSantriGrid();
+}
+
 function setStudentStatus(index, status, event) {
   if (event) event.stopPropagation();
   const card = document.getElementById(`card-santri-${index}`);
   const detailContainer = document.getElementById(`detail-options-${index}`);
   
-  const currentStatus = card.getAttribute('data-status') || 'Belum';
   let targetStatus = status;
-  
-  // LOGIKA HIDUP-MATIKAN (TOGGLE): Jika mengklik status yang sudah aktif, kembalikan ke status "Belum"
-  if (currentStatus === status) {
-    targetStatus = 'Belum';
-  }
   
   card.setAttribute('data-status', targetStatus);
   
@@ -487,11 +528,13 @@ function filterSantriGrid() {
   cards.forEach(card => {
     const cClass = card.getAttribute('data-kelas');
     const cRoom = card.getAttribute('data-kamar');
+    const cStatus = card.getAttribute('data-status') || 'Belum';
     
     const matchClass = !classVal || cClass === classVal;
     const matchRoom = !roomVal || cRoom === roomVal;
+    const matchStatus = !currentStatusFilter || cStatus === currentStatusFilter;
     
-    if (matchClass && matchRoom) {
+    if (matchClass && matchRoom && matchStatus) {
       card.classList.remove('hidden');
       count++;
     } else {

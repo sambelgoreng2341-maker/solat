@@ -54,6 +54,28 @@
 
     <!-- Dashboard Tab -->
     <section id="tab-dashboard" class="space-y-6">
+      <!-- Dashboard Filters -->
+      <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end no-print">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal</label>
+          <input type="date" id="dash-filter-tanggal" onchange="renderDashboard()" class="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Kelas</label>
+          <select id="dash-filter-kelas" onchange="renderDashboard()" class="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 min-w-[150px]">
+            <option value="">Semua Kelas</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Kamar/Asrama</label>
+          <select id="dash-filter-kamar" onchange="renderDashboard()" class="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500 min-w-[150px]">
+            <option value="">Semua Kamar</option>
+          </select>
+        </div>
+        <div>
+           <button onclick="resetDashFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2.5 rounded-lg border border-slate-300 transition duration-150">Reset</button>
+        </div>
+      </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1 -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -179,6 +201,16 @@
           <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-lg">
             Ditemukan: <span id="santri-filtered-count" class="font-bold">0</span> Santri
           </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex flex-wrap gap-2 mb-2" id="input-status-filters">
+            <button onclick="filterByStatus('', event)" class="status-filter-btn active bg-slate-800 text-white px-3 py-1.5 rounded text-xs font-bold transition">Semua</button>
+            <button onclick="filterByStatus('Belum', event)" class="status-filter-btn bg-slate-200 text-slate-600 px-3 py-1.5 rounded text-xs font-bold transition hover:bg-slate-300">Belum Diabsen</button>
+            <button onclick="filterByStatus('Hadir', event)" class="status-filter-btn bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded text-xs font-bold transition hover:bg-emerald-200">Hadir</button>
+            <button onclick="filterByStatus('Sakit', event)" class="status-filter-btn bg-amber-100 text-amber-700 px-3 py-1.5 rounded text-xs font-bold transition hover:bg-amber-200">Sakit</button>
+            <button onclick="filterByStatus('Izin', event)" class="status-filter-btn bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-xs font-bold transition hover:bg-blue-200">Izin</button>
+            <button onclick="filterByStatus('Alpa', event)" class="status-filter-btn bg-rose-100 text-rose-700 px-3 py-1.5 rounded text-xs font-bold transition hover:bg-rose-200">Alpa</button>
         </div>
 
         <div id="santri-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
